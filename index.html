@@ -231,6 +231,7 @@
     box-shadow:0 4px 14px -4px rgba(169,129,46,.55);
   }
   .btn-download:hover{ box-shadow:0 6px 18px -4px rgba(169,129,46,.65); transform:translateY(-1px); }
+  button:disabled{ opacity:.65; cursor:wait; transform:none !important; }
   .btn-download:disabled{ opacity:.65; cursor:wait; transform:none !important; }
   .live-badge{
     font-size:11px; font-weight:700; color:var(--green);
@@ -555,7 +556,7 @@
 
     <div class="toolbar-actions">
       <button class="btn-apply" onclick="applyAll(true)">✓ Terapkan ke Semua Label</button>
-      <button class="btn-print" onclick="window.print()">🖨 Cetak</button>
+      <button class="btn-print" id="btnPrintDirect" onclick="printDirect()">🖨 Cetak Langsung</button>
       <button class="btn-download" id="btnDownload" onclick="downloadPDF()">⬇ Download PDF</button>
       <span class="live-badge"><span class="dot"></span>Pembaruan otomatis aktif</span>
     </div>
@@ -629,31 +630,33 @@
     toastTimer = setTimeout(()=> toast.classList.remove('show'), duration || 1600);
   }
 
-  async function downloadPDF(){
-    const btn = document.getElementById('btnDownload');
+  async function generateSheetPDF(){
+    const scaler = document.getElementById('sheetScaler');
+    const prevTransform = scaler.style.transform;
+    scaler.style.transform = 'none';
+    await new Promise(r=>setTimeout(r,80));
+
+    const sheetEl = document.getElementById('sheet');
+    const canvas = await html2canvas(sheetEl, { scale:3, useCORS:true, backgroundColor:'#ffffff' });
+
+    scaler.style.transform = prevTransform;
+    fitSheetToScreen();
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    return pdf;
+  }
+
+  async function runWithButtonState(btnId, busyLabel, toastBusy, fn){
+    const btn = document.getElementById(btnId);
     const originalLabel = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '⏳ Menyiapkan PDF...';
-    showToast('Menyiapkan PDF, mohon tunggu…', 60000);
+    btn.innerHTML = busyLabel;
+    showToast(toastBusy, 60000);
     try{
-      const scaler = document.getElementById('sheetScaler');
-      const prevTransform = scaler.style.transform;
-      scaler.style.transform = 'none';
-      await new Promise(r=>setTimeout(r,80));
-
-      const sheetEl = document.getElementById('sheet');
-      const canvas = await html2canvas(sheetEl, { scale:3, useCORS:true, backgroundColor:'#ffffff' });
-
-      scaler.style.transform = prevTransform;
-      fitSheetToScreen();
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-      pdf.save('label-makanan.pdf');
-
-      showToast('✓ PDF berhasil diunduh');
+      await fn();
     }catch(err){
       console.error(err);
       showToast('Gagal membuat PDF, coba lagi');
@@ -661,6 +664,24 @@
       btn.disabled = false;
       btn.innerHTML = originalLabel;
     }
+  }
+
+  function downloadPDF(){
+    runWithButtonState('btnDownload', '⏳ Menyiapkan...', 'Menyiapkan PDF, mohon tunggu…', async ()=>{
+      const pdf = await generateSheetPDF();
+      pdf.save('label-makanan.pdf');
+      showToast('✓ PDF berhasil diunduh');
+    });
+  }
+
+  function printDirect(){
+    runWithButtonState('btnPrintDirect', '⏳ Menyiapkan...', 'Menyiapkan halaman cetak…', async ()=>{
+      const pdf = await generateSheetPDF();
+      pdf.autoPrint();
+      const blobUrl = pdf.output('bloburl');
+      window.open(blobUrl, '_blank');
+      showToast('✓ Siap dicetak — pilih printer di tab baru');
+    });
   }
 
   const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];

@@ -709,6 +709,15 @@
     input.addEventListener('input', scheduleAutoApply);
   });
 
+  // Set the date field to today's date automatically on load (format DD/MM/YYYY)
+  (function setTodayDate(){
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const yyyy = today.getFullYear();
+    document.getElementById('f-tanggal').value = `${dd}/${mm}/${yyyy}`;
+  })();
+
   applyAll(false);
   fitSheetToScreen();
   window.addEventListener('resize', fitSheetToScreen);

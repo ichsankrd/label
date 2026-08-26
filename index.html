@@ -2,100 +2,278 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Label Batas Makan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label Makanan San</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --green:#1E9E5A;
-    --dark:#222831;
-    --red:#D92D20;
-    --gray:#4B5563;
-    --line:#B5B5B5;
+    --navy:#16213F;
+    --navy2:#22335C;
+    --gold:#A9812E;
+    --green:#2F6E4E;
+    --green-light:#3C9468;
+    --red:#B0231C;
+    --gray:#5B6472;
+    --line:#D8DCE2;
+    --paper:#FDFBF6;
+    --lbl-line:#E6E1D2;
+    --amber-bg:#FBF1DC;
+    --font-display:'Oswald', Arial, sans-serif;
+    --font-body:'Inter', Arial, sans-serif;
+    --font-mono:'Roboto Mono', 'Courier New', monospace;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
+    overflow-x:hidden;
     font-family:Arial, Helvetica, sans-serif;
-    background:#EEF1F0;
     color:#111;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(27,42,74,.07) 1px, transparent 0) 0 0/18px 18px,
+      linear-gradient(180deg,#EAF0EE 0%, #EEF1F0 320px);
+    min-height:100vh;
   }
 
   /* ---------- Toolbar (hidden on print) ---------- */
   .toolbar{
-    max-width:900px;
-    margin:24px auto 0;
+    max-width:920px;
+    margin:28px auto 0;
     background:#fff;
-    border-radius:12px;
-    padding:20px 24px;
-    box-shadow:0 1px 3px rgba(0,0,0,.1);
+    border-radius:16px;
+    padding:0 0 22px;
+    box-shadow:0 10px 30px -12px rgba(27,42,74,.25), 0 1px 3px rgba(0,0,0,.06);
+    overflow:hidden;
+    animation:toolbarIn .5s cubic-bezier(.2,.8,.2,1);
   }
-  .toolbar h1{
-    font-size:18px;
-    margin:0 0 4px;
+  @keyframes toolbarIn{
+    from{ opacity:0; transform:translateY(10px) scale(.99); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
   }
-  .toolbar p{
-    font-size:13px;
-    color:var(--gray);
-    margin:0 0 16px;
+  @media (prefers-reduced-motion:reduce){
+    .toolbar{ animation:none; }
+  }
+  .toolbar-head{
+    background:linear-gradient(120deg, var(--navy) 0%, var(--navy2) 55%, var(--gold) 130%);
+    padding:22px 24px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .toolbar-head::after{
+    content:"";
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 85% -20%, rgba(255,255,255,.18), transparent 55%);
+  }
+  .toolbar-head h1{
+    font-size:19px; margin:0; color:#fff; letter-spacing:.01em;
+    display:flex; align-items:center; gap:9px; position:relative;
+  }
+  .toolbar-head h1 .dot{
+    width:9px; height:9px; border-radius:50%; background:#5CD98F;
+    box-shadow:0 0 0 4px rgba(92,217,143,.25);
+    animation:pulseDot 2.4s ease-in-out infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulseDot{
+    0%,100%{ box-shadow:0 0 0 4px rgba(92,217,143,.25); }
+    50%{ box-shadow:0 0 0 7px rgba(92,217,143,.08); }
+  }
+  .toolbar-head p{
+    font-size:12.5px; color:rgba(255,255,255,.78); margin:0; position:relative; max-width:560px; line-height:1.5;
+  }
+  .toolbar-body{ padding:20px 24px 0; }
+  @media (max-width:600px){
+    .toolbar{ margin:14px 10px 0; border-radius:12px; }
+    .toolbar-head{ padding:18px 16px 16px; }
+    .toolbar-body{ padding:16px 16px 0; }
+    .toolbar-head h1{ font-size:16px; }
   }
   .fields{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:10px;
+    gap:12px;
   }
   .fields label{
-    display:block;
-    font-size:11px;
-    font-weight:bold;
-    color:var(--gray);
-    text-transform:uppercase;
-    letter-spacing:.03em;
-    margin-bottom:4px;
+    display:block; font-size:11px; font-weight:bold; color:var(--gray);
+    text-transform:uppercase; letter-spacing:.03em; margin-bottom:5px;
+  }
+  .section-title{
+    font-size:12px; font-weight:bold; color:var(--navy);
+    text-transform:uppercase; letter-spacing:.03em;
+    margin:20px 0 6px; padding-top:16px;
+    border-top:1px dashed var(--line);
+    display:flex; align-items:center; gap:7px;
+  }
+  .section-title::before{
+    content:"";
+    width:6px; height:6px; border-radius:1.5px; background:var(--gold);
+    transform:rotate(45deg); flex-shrink:0;
   }
   .fields input, .fields select{
-    width:100%;
-    padding:8px 10px;
-    border:1px solid #D1D5DB;
-    border-radius:6px;
-    font-size:13px;
-    font-family:inherit;
-    background:#fff;
+    width:100%; padding:9px 11px; border:1.5px solid #D1D5DB;
+    border-radius:8px; font-size:13px; font-family:inherit; background:#fff;
+    transition:border-color .15s ease, box-shadow .15s ease, transform .1s ease;
   }
-  .toolbar-actions{
-    margin-top:16px;
+  .fields input:hover{ border-color:#B7C0CC; }
+  .fields input:focus, .unit-input:focus-within{
+    outline:none; border-color:var(--green-light);
+    box-shadow:0 0 0 3.5px rgba(60,148,104,.16);
+  }
+  .toolbar-actions{ margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .gizi-input-wrap{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:12px;
+    margin-top:8px;
+  }
+  .gizi-input-group{
+    border:1.5px solid #E1E4E8;
+    border-radius:10px;
+    padding:12px 13px 13px;
+    background:#FAFBFC;
+    min-width:0;
+    transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .gizi-input-group:hover{
+    border-color:#CBD5DE;
+    box-shadow:0 4px 14px -8px rgba(27,42,74,.25);
+    transform:translateY(-1px);
+  }
+  .gizi-input-group .gizi-name{
+    font-size:12px;
+    font-weight:800;
+    color:var(--navy);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:1px dashed var(--line);
+  }
+  .gizi-input-group .gizi-pair{
     display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .gizi-input-group .gizi-pair > div{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
     gap:10px;
-    flex-wrap:wrap;
+  }
+  .gizi-input-group .gizi-pair div label{
+    font-size:10.5px;
+    color:var(--gray);
+    font-weight:700;
+    margin-bottom:0;
+    white-space:nowrap;
+    flex-shrink:0;
+    width:72px;
+  }
+  .unit-input{
+    display:flex;
+    align-items:stretch;
+    border:1.5px solid #D1D5DB;
+    border-radius:7px;
+    overflow:hidden;
+    background:#fff;
+    flex:1;
+    min-width:0;
+    max-width:150px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .unit-input input{
+    border:none;
+    border-radius:0;
+    flex:1;
+    width:100%;
+    min-width:0;
+    text-align:right;
+    box-shadow:none !important;
+  }
+  .unit-input input:focus{ outline:none; }
+  .unit-input .unit{
+    display:flex;
+    align-items:center;
+    padding:0 8px;
+    font-size:12px;
+    font-weight:700;
+    color:var(--gray);
+    background:#F3F4F6;
+    border-left:1px solid #D1D5DB;
+    flex-shrink:0;
   }
   button{
-    font-family:inherit;
-    font-size:13px;
-    font-weight:bold;
-    border:none;
-    border-radius:8px;
-    padding:10px 18px;
-    cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:bold; border:none;
+    border-radius:9px; padding:11px 20px; cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+    display:inline-flex; align-items:center; gap:7px;
   }
+  button:active{ transform:translateY(1px) scale(.98); }
   .btn-apply{
-    background:var(--green);
+    background:linear-gradient(135deg, var(--green-light), var(--green));
     color:#fff;
+    box-shadow:0 4px 14px -4px rgba(47,110,78,.55);
   }
-  .btn-apply:hover{background:#188049;}
+  .btn-apply:hover{ box-shadow:0 6px 18px -4px rgba(47,110,78,.65); transform:translateY(-1px); }
   .btn-print{
-    background:var(--dark);
+    background:linear-gradient(135deg, var(--navy2), var(--navy));
     color:#fff;
+    box-shadow:0 4px 14px -4px rgba(27,42,74,.5);
   }
-  .btn-print:hover{background:#000;}
-  .hint{
-    font-size:12px;
-    color:var(--gray);
-    margin-top:10px;
+  .btn-print:hover{ box-shadow:0 6px 18px -4px rgba(27,42,74,.6); transform:translateY(-1px); }
+  .btn-download{
+    background:linear-gradient(135deg, #C79A3B, var(--gold));
+    color:#fff;
+    box-shadow:0 4px 14px -4px rgba(169,129,46,.55);
   }
+  .btn-download:hover{ box-shadow:0 6px 18px -4px rgba(169,129,46,.65); transform:translateY(-1px); }
+  .btn-download:disabled{ opacity:.65; cursor:wait; transform:none !important; }
+  .live-badge{
+    font-size:11px; font-weight:700; color:var(--green);
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(47,110,78,.09);
+    padding:6px 11px; border-radius:20px;
+  }
+  .live-badge .dot{
+    width:6px; height:6px; border-radius:50%; background:var(--green);
+    animation:pulseDot 2.4s ease-in-out infinite;
+  }
+  .hint{ font-size:12px; color:var(--gray); margin-top:12px; }
 
-  /* ---------- Sheet ---------- */
+  /* toast feedback */
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translate(-50%, 20px);
+    background:var(--navy); color:#fff; font-size:13px; font-weight:700;
+    padding:11px 20px; border-radius:30px; display:flex; align-items:center; gap:8px;
+    box-shadow:0 10px 30px -8px rgba(0,0,0,.4);
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+    z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
+  .toast svg{ flex-shrink:0; }
+  @media print{ .toast{ display:none !important; } }
+
+  /* gentle refresh flash on the sheet when values are applied */
+  @keyframes labelFlash{
+    0%{ box-shadow:0 0 0 0 rgba(60,148,104,0); }
+    30%{ box-shadow:0 0 0 3px rgba(60,148,104,.35); }
+    100%{ box-shadow:0 0 0 0 rgba(60,148,104,0); }
+  }
+  .label.flash{ animation:labelFlash .6s ease; }
+
+  /* ---------- Sheet: A4, 2x4 labels ---------- */
   .sheet-wrap{
     display:flex;
     justify-content:center;
-    padding:24px 0 60px;
+    padding:24px 10px 60px;
+    overflow:hidden;
+  }
+  .sheet-scaler{
+    transform-origin:top center;
   }
   .sheet{
     width:210mm;
@@ -106,148 +284,331 @@
     grid-template-columns:105mm 105mm;
     grid-template-rows:repeat(4,74.25mm);
   }
+
   .label{
-    border:1px dashed var(--line);
-    margin:0;
+    position:relative;
+    margin:0.4mm;
+    border:1px solid var(--navy);
+    border-radius:1.5mm;
+    background:var(--paper);
+    padding:2.6mm 3.6mm 2mm;
     display:flex;
     flex-direction:column;
-    justify-content:space-evenly;
-    padding:2mm 4mm;
-    text-align:center;
+    justify-content:space-between;
+    gap:1.1mm;
     overflow:hidden;
+    font-family:var(--font-body);
   }
-  .label .bar{
-    background:var(--green);
-    color:#fff;
-    font-weight:bold;
-    font-size:14px;
-    letter-spacing:.04em;
-    padding:6px 0;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+  .label::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:1.4mm;
+    background:linear-gradient(90deg, var(--navy) 0%, var(--navy) 62%, var(--gold) 100%);
   }
-  .label .date{
-    font-size:28px;
-    font-weight:bold;
-    line-height:1.2;
+
+  .lbl-bar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:1.3mm;
+    margin-top:0.6mm;
+    padding-bottom:1mm;
+    border-bottom:1px solid var(--lbl-line);
   }
-  .label .time{
-    font-size:28px;
-    font-weight:bold;
-    line-height:1.2;
+  .lbl-bar svg{ flex-shrink:0; }
+  .lbl-bar .lbl-brand{
+    font-family:var(--font-display);
+    font-size:14.5px;
+    font-weight:600;
+    letter-spacing:.09em;
+    color:var(--navy);
+    text-transform:uppercase;
+    line-height:1.15;
   }
-  .label .menu{
-    font-size:13px;
+  .lbl-bar .lbl-brand small{
+    display:block;
+    font-family:var(--font-body);
+    font-size:7px;
+    font-weight:700;
+    letter-spacing:.14em;
+    color:var(--gold);
+    margin-top:0.6mm;
+    text-transform:uppercase;
+  }
+
+  .lbl-row{
+    display:grid;
+    grid-template-columns:20mm 1fr;
+    align-items:baseline;
+    column-gap:2mm;
+  }
+  .lbl-row .lbl-label{
+    font-size:8px;
+    font-weight:700;
     color:var(--gray);
+    text-transform:uppercase;
+    letter-spacing:.07em;
   }
-  .label .warning{
+  .lbl-row .lbl-value{
+    font-family:var(--font-body);
     font-size:13px;
-    font-weight:bold;
-    color:var(--red);
+    font-weight:700;
+    color:var(--navy);
   }
-  .label .footer{
-    background:var(--dark);
+
+  .lbl-menu{ padding:0.3mm 0 0.2mm; }
+  .lbl-menu .lbl-label{ align-self:start; padding-top:1.5mm; }
+  .lbl-menu .lbl-value{
+    font-family:var(--font-display);
+    font-size:19px;
+    font-weight:600;
+    letter-spacing:.015em;
+    line-height:1.12;
+    color:var(--navy);
+  }
+
+  /* Batas Konsumsi — highlighted like an official time-stamp */
+  .lbl-batas{
+    display:flex;
+    align-items:center;
+    gap:2.2mm;
+    background:var(--amber-bg);
+    border:1px dashed var(--gold);
+    border-radius:1mm;
+    padding:1.1mm 2.4mm;
+  }
+  .lbl-batas svg{ flex-shrink:0; }
+  .lbl-batas .lbl-label{
+    font-size:7.5px;
+    font-weight:800;
+    color:#8A6A24;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    line-height:1.3;
+  }
+  .lbl-batas .lbl-value{
+    font-family:var(--font-mono);
+    font-size:14px;
+    font-weight:700;
+    white-space:nowrap;
+    color:var(--navy2);
+    letter-spacing:.01em;
+  }
+
+  .lbl-gizi{
+    border-top:0.8px solid var(--lbl-line);
+    border-bottom:0.8px solid var(--lbl-line);
+    padding:1.3mm 0 1mm;
+  }
+  .lbl-gizi-title{
+    font-size:8px;
+    font-weight:700;
+    color:var(--gray);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin-bottom:0.9mm;
+  }
+  .gizi-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--font-mono);
+  }
+  .gizi-table th{
+    font-family:var(--font-body);
+    font-size:7.5px;
+    font-weight:700;
     color:#fff;
-    padding:8px 4px;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+    background:var(--navy);
+    padding:1.8px 3px;
+    text-align:center;
+    letter-spacing:.04em;
+    text-transform:uppercase;
   }
-  .label .footer .ts{
+  .gizi-table th:first-child{
+    background:transparent;
+    text-align:left;
+    color:transparent;
+  }
+  .gizi-table td{
     font-size:11px;
-    font-weight:bold;
+    padding:1.6px 3px;
+    text-align:center;
+    font-weight:700;
+    color:var(--navy2);
+    border-top:0.6px solid var(--lbl-line);
   }
-  .label .footer .loc{
+  .gizi-table tr:nth-child(even) td{ background:#F4F1E8; }
+  .gizi-table td:first-child{
+    text-align:left;
+    color:var(--navy);
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+  }
+  .gizi-table tr:first-child td{ border-top:none; }
+  .gizi-table td:nth-child(2){ border-left:0.6px solid var(--lbl-line); }
+  .gizi-table td:nth-child(3){ border-left:0.6px solid var(--lbl-line); }
+
+  .lbl-warning{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:1.6mm;
+    text-align:center;
+    font-family:var(--font-body);
     font-size:11px;
-    color:#D1D5DB;
-    margin-top:2px;
+    font-weight:800;
+    letter-spacing:.06em;
+    color:#fff;
+    background:var(--red);
+    padding:2.4px 4px;
+    margin:0 -3.6mm -2mm;
+    border-radius:0 0 1.2mm 1.2mm;
   }
-  [contenteditable="true"]{
-    outline:none;
-    border-radius:3px;
+  .lbl-warning svg{ flex-shrink:0; }
+
+  .lbl-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:7.5px;
+    color:var(--gray);
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    margin-top:0.3mm;
+    padding-top:0.6mm;
+    border-top:0.6px solid var(--lbl-line);
   }
-  [contenteditable="true"]:hover{
-    background:rgba(30,158,90,.08);
-  }
-  [contenteditable="true"]:focus{
-    background:rgba(30,158,90,.15);
-  }
+  [contenteditable="true"]{ outline:none; border-radius:2px; }
+  [contenteditable="true"]:hover{ background:rgba(30,158,90,.10); }
+  [contenteditable="true"]:focus{ background:rgba(30,158,90,.18); }
 
   /* ---------- Print ---------- */
   @media print{
-    body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-    *{-webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;}
-    .toolbar{display:none;}
-    .sheet-wrap{padding:0;}
-    .sheet{
-      box-shadow:none;
-      margin:0;
-      width:210mm;
-      height:297mm;
-    }
-    [contenteditable="true"]:hover,
-    [contenteditable="true"]:focus{
-      background:transparent;
-    }
-    @page{
-      size:A4;
-      margin:0;
-    }
+    body{ background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    .toolbar{ display:none; }
+    .sheet-wrap{ padding:0; overflow:visible; }
+    .sheet-scaler{ transform:none !important; }
+    .sheet{ box-shadow:none; margin:0; width:210mm; height:297mm; }
+    [contenteditable="true"]:hover, [contenteditable="true"]:focus{ background:transparent; }
+    @page{ size:A4; margin:0; }
   }
 </style>
 </head>
 <body>
 
   <div class="toolbar" id="toolbar">
-    <h1>SAN</h1>
+    <div class="toolbar-head">
+      <h1><span class="dot"></span>SAN</h1>
+    </div>
+
+    <div class="toolbar-body">
     <div class="fields">
-      <div>
-        <label>Tanggal</label>
-        <input id="f-tanggal" value="11/08/2026">
+      <div><label>Nama Menu</label><input id="f-menu" value="AYAM KECAP"></div>
+      <div><label>Batas Konsumsi (Jam)</label><input id="f-jam" value="12.00"></div>
+      <div><label>Tanggal</label><input id="f-tanggal" value="26/08/2026"></div>
+    </div>
+
+    <div class="section-title">Kandungan Gizi (per porsi)</div>
+    <div class="gizi-input-wrap">
+      <div class="gizi-input-group">
+        <div class="gizi-name">🔥 Energi</div>
+        <div class="gizi-pair">
+          <div><label>Porsi Kecil</label><div class="unit-input"><input id="f-energi-kecil" type="number" value="" placeholder="0"><span class="unit">kkal</span></div></div>
+          <div><label>Porsi Besar</label><div class="unit-input"><input id="f-energi-besar" type="number" value="" placeholder="0"><span class="unit">kkal</span></div></div>
+        </div>
       </div>
-      <div>
-        <label>Jam Batas Makan</label>
-        <input id="f-jam" value="12.00">
+      <div class="gizi-input-group">
+        <div class="gizi-name">💪 Protein</div>
+        <div class="gizi-pair">
+          <div><label>Porsi Kecil</label><div class="unit-input"><input id="f-protein-kecil" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+          <div><label>Porsi Besar</label><div class="unit-input"><input id="f-protein-besar" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+        </div>
       </div>
-      <div>
-        <label>Nama Menu</label>
-        <input id="f-menu" value="AYAM KECAP">
+      <div class="gizi-input-group">
+        <div class="gizi-name">💧 Lemak</div>
+        <div class="gizi-pair">
+          <div><label>Porsi Kecil</label><div class="unit-input"><input id="f-lemak-kecil" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+          <div><label>Porsi Besar</label><div class="unit-input"><input id="f-lemak-besar" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+        </div>
       </div>
-      <div>
-        <label>Tipe Porsi</label>
-        <select id="f-porsi">
-          <option value="PORSI BESAR">PORSI BESAR</option>
-          <option value="PORSI KECIL">PORSI KECIL</option>
-        </select>
+      <div class="gizi-input-group">
+        <div class="gizi-name">🌾 Karbohidrat</div>
+        <div class="gizi-pair">
+          <div><label>Porsi Kecil</label><div class="unit-input"><input id="f-karbo-kecil" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+          <div><label>Porsi Besar</label><div class="unit-input"><input id="f-karbo-besar" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+        </div>
       </div>
-      <div>
-        <label>Tanggal Cetak</label>
-        <input id="f-cetak" value="11/08/2026">
-      </div>
-      <div>
-        <label>Lokasi</label>
-        <input id="f-lokasi" value="Karangduak, Sumenep">
+      <div class="gizi-input-group">
+        <div class="gizi-name">🌿 Serat</div>
+        <div class="gizi-pair">
+          <div><label>Porsi Kecil</label><div class="unit-input"><input id="f-serat-kecil" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+          <div><label>Porsi Besar</label><div class="unit-input"><input id="f-serat-besar" type="number" value="" placeholder="0"><span class="unit">g</span></div></div>
+        </div>
       </div>
     </div>
+
     <div class="toolbar-actions">
-      <button class="btn-apply" onclick="applyAll()">Terapkan ke Semua Label</button>
-      <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+      <button class="btn-apply" onclick="applyAll(true)">✓ Terapkan ke Semua Label</button>
+      <button class="btn-print" onclick="window.print()">🖨 Cetak</button>
+      <button class="btn-download" id="btnDownload" onclick="downloadPDF()">⬇ Download PDF</button>
+      <span class="live-badge"><span class="dot"></span>Pembaruan otomatis aktif</span>
+    </div>
+    <div class="hint">Ukuran cetak: A4, 2×4 label per lembar (8 label).</div>
     </div>
   </div>
 
   <div class="sheet-wrap">
-    <div class="sheet" id="sheet"></div>
+    <div class="sheet-scaler" id="sheetScaler">
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#5CD98F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="toastMsg">Diterapkan ke 8 label</span>
   </div>
 
 <script>
   const LABEL_TEMPLATE = () => `
-    <div class="bar">BATAS MAKAN</div>
-    <div class="date" contenteditable="true">11/08/2026</div>
-    <div class="time" contenteditable="true">12.00 WIB</div>
-    <div class="menu" contenteditable="true">AYAM KECAP · PORSI BESAR</div>
-    <div class="warning" contenteditable="true">TIDAK UNTUK DIBAWA PULANG</div>
-    <div class="footer">
-      <div class="ts" contenteditable="true">11/08/2026</div>
-      <div class="loc" contenteditable="true">Karangduak, Sumenep</div>
+    <div class="lbl-bar">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 5-3.2 8.7-7 10-3.8-1.3-7-5-7-10V5l7-3z" fill="var(--navy)"/><path d="M8.5 12l2.3 2.3L16 9.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <div class="lbl-brand">Label Makanan<small>Informasi Konsumsi Makanan</small></div>
+    </div>
+
+    <div class="lbl-row lbl-menu">
+      <div class="lbl-label">Menu</div>
+      <div class="lbl-value d-menu" contenteditable="true">AYAM KECAP</div>
+    </div>
+
+    <div class="lbl-batas">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--gold)" stroke-width="2"/><path d="M12 7v5l3.5 2" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>
+        <div class="lbl-label">Batas Konsumsi</div>
+        <div class="lbl-value"><span class="d-tanggal" contenteditable="true">26/08/2026</span> &nbsp;·&nbsp; <span class="d-jam" contenteditable="true">12.00</span> WIB</div>
+      </div>
+    </div>
+
+    <div class="lbl-gizi">
+      <div class="lbl-gizi-title">Kandungan Gizi &middot; Per Porsi</div>
+      <table class="gizi-table">
+        <tr><th></th><th>Porsi Kecil</th><th>Porsi Besar</th></tr>
+        <tr><td>Energi</td><td class="d-energi-kecil" contenteditable="true"></td><td class="d-energi-besar" contenteditable="true"></td></tr>
+        <tr><td>Protein</td><td class="d-protein-kecil" contenteditable="true"></td><td class="d-protein-besar" contenteditable="true"></td></tr>
+        <tr><td>Lemak</td><td class="d-lemak-kecil" contenteditable="true"></td><td class="d-lemak-besar" contenteditable="true"></td></tr>
+        <tr><td>Karbohidrat</td><td class="d-karbo-kecil" contenteditable="true"></td><td class="d-karbo-besar" contenteditable="true"></td></tr>
+        <tr><td>Serat</td><td class="d-serat-kecil" contenteditable="true"></td><td class="d-serat-besar" contenteditable="true"></td></tr>
+      </table>
+    </div>
+
+    <div class="lbl-warning">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2L12 3z" fill="#fff"/><rect x="11" y="9" width="2" height="6" fill="var(--red)"/><rect x="11" y="16.5" width="2" height="2" fill="var(--red)"/></svg>
+      <span contenteditable="true">DILARANG DIBAWA PULANG</span>
     </div>
   `;
 
@@ -259,43 +620,110 @@
     sheet.appendChild(div);
   }
 
-  function todayStr(){
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2,'0');
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const yyyy = d.getFullYear();
-    return dd + '/' + mm + '/' + yyyy;
+  let toastTimer = null;
+  function showToast(msg, duration){
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.classList.remove('show'), duration || 1600);
   }
 
-  function nowTimeStr(){
-    const d = new Date();
-    const hh = String(d.getHours()).padStart(2,'0');
-    const mi = String(d.getMinutes()).padStart(2,'0');
-    return hh + '.' + mi;
+  async function downloadPDF(){
+    const btn = document.getElementById('btnDownload');
+    const originalLabel = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Menyiapkan PDF...';
+    showToast('Menyiapkan PDF, mohon tunggu…', 60000);
+    try{
+      const scaler = document.getElementById('sheetScaler');
+      const prevTransform = scaler.style.transform;
+      scaler.style.transform = 'none';
+      await new Promise(r=>setTimeout(r,80));
+
+      const sheetEl = document.getElementById('sheet');
+      const canvas = await html2canvas(sheetEl, { scale:3, useCORS:true, backgroundColor:'#ffffff' });
+
+      scaler.style.transform = prevTransform;
+      fitSheetToScreen();
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      pdf.save('label-makanan.pdf');
+
+      showToast('✓ PDF berhasil diunduh');
+    }catch(err){
+      console.error(err);
+      showToast('Gagal membuat PDF, coba lagi');
+    }finally{
+      btn.disabled = false;
+      btn.innerHTML = originalLabel;
+    }
   }
 
-  function applyAll(){
-    const tanggal = document.getElementById('f-tanggal').value;
-    const jam = document.getElementById('f-jam').value;
+  function applyAll(announce){
     const menu = document.getElementById('f-menu').value;
-    const porsi = document.getElementById('f-porsi').value;
-    const cetak = document.getElementById('f-cetak').value;
-    const lokasi = document.getElementById('f-lokasi').value;
+    const jam = document.getElementById('f-jam').value;
+    const tanggal = document.getElementById('f-tanggal').value;
 
-    document.querySelectorAll('.label').forEach(label=>{
-      label.querySelector('.date').textContent = tanggal;
-      label.querySelector('.time').textContent = jam + ' WIB';
-      label.querySelector('.menu').textContent = menu + ' · ' + porsi;
-      label.querySelector('.ts').textContent = cetak;
-      label.querySelector('.loc').textContent = lokasi;
+    const units = { energi:'kkal', protein:'g', lemak:'g', karbo:'g', serat:'g' };
+    const pairs = ['energi','protein','lemak','karbo','serat'];
+    const vals = {};
+    pairs.forEach(p=>{
+      const kecil = document.getElementById('f-'+p+'-kecil').value.trim();
+      const besar = document.getElementById('f-'+p+'-besar').value.trim();
+      vals[p+'-kecil'] = kecil === '' ? '' : kecil + ' ' + units[p];
+      vals[p+'-besar'] = besar === '' ? '' : besar + ' ' + units[p];
     });
+
+    const labels = document.querySelectorAll('.label');
+    labels.forEach(label=>{
+      label.querySelector('.d-menu').textContent = menu;
+      label.querySelector('.d-jam').textContent = jam;
+      label.querySelector('.d-tanggal').textContent = tanggal;
+      pairs.forEach(p=>{
+        label.querySelector('.d-'+p+'-kecil').textContent = vals[p+'-kecil'];
+        label.querySelector('.d-'+p+'-besar').textContent = vals[p+'-besar'];
+      });
+      if(announce){
+        label.classList.remove('flash');
+        void label.offsetWidth; // restart animation
+        label.classList.add('flash');
+      }
+    });
+
+    if(announce){
+      showToast('Diterapkan ke ' + labels.length + ' label');
+    }
   }
 
-  // Auto-isi tanggal hari ini (tetap bisa diedit manual)
-  document.getElementById('f-tanggal').value = todayStr();
-  document.getElementById('f-cetak').value = todayStr();
+  // Live update: re-apply automatically as the user types (debounced)
+  let liveTimer = null;
+  function scheduleAutoApply(){
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(()=> applyAll(false), 250);
+  }
+  document.querySelectorAll('.toolbar input').forEach(input=>{
+    input.addEventListener('input', scheduleAutoApply);
+  });
 
-  applyAll();
+  applyAll(false);
+  fitSheetToScreen();
+  window.addEventListener('resize', fitSheetToScreen);
+
+  function fitSheetToScreen(){
+    const wrap = document.querySelector('.sheet-wrap');
+    const scaler = document.getElementById('sheetScaler');
+    const sheet = document.getElementById('sheet');
+    const availableWidth = wrap.clientWidth - 20;
+    const sheetWidth = sheet.offsetWidth;
+    const sheetHeight = sheet.offsetHeight;
+    const scale = Math.min(1, availableWidth / sheetWidth);
+    scaler.style.transform = 'scale(' + scale + ')';
+    wrap.style.height = (sheetHeight * scale + 40) + 'px';
+  }
 </script>
 
 </body>

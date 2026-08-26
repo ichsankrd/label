@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Label Makanan San</title>
+<title>Label Makanann</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@600;700&display=swap" rel="stylesheet">
@@ -511,7 +511,7 @@
     <div class="fields">
       <div><label>Nama Menu</label><input id="f-menu" value="AYAM KECAP"></div>
       <div><label>Batas Konsumsi (Jam)</label><input id="f-jam" value="12.00"></div>
-      <div><label>Tanggal</label><input id="f-tanggal" value="26/08/2026"></div>
+      <div><label>Tanggal</label><input id="f-tanggal" type="date"></div>
     </div>
 
     <div class="section-title">Kandungan Gizi (per porsi)</div>
@@ -590,7 +590,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--gold)" stroke-width="2"/><path d="M12 7v5l3.5 2" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div>
         <div class="lbl-label">Batas Konsumsi</div>
-        <div class="lbl-value"><span class="d-tanggal" contenteditable="true">26/08/2026</span> &nbsp;·&nbsp; <span class="d-jam" contenteditable="true">12.00</span> WIB</div>
+        <div class="lbl-value"><span class="d-tanggal" contenteditable="true">26 Agustus 2026</span> &nbsp;·&nbsp; <span class="d-jam" contenteditable="true">12.00</span> WIB</div>
       </div>
     </div>
 
@@ -663,10 +663,18 @@
     }
   }
 
+  const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  function formatTanggalID(isoValue){
+    if(!isoValue) return '';
+    const [y,m,d] = isoValue.split('-').map(Number);
+    if(!y || !m || !d) return '';
+    return `${d} ${BULAN_ID[m-1]} ${y}`;
+  }
+
   function applyAll(announce){
     const menu = document.getElementById('f-menu').value;
     const jam = document.getElementById('f-jam').value;
-    const tanggal = document.getElementById('f-tanggal').value;
+    const tanggal = formatTanggalID(document.getElementById('f-tanggal').value);
 
     const units = { energi:'kkal', protein:'g', lemak:'g', karbo:'g', serat:'g' };
     const pairs = ['energi','protein','lemak','karbo','serat'];
@@ -709,13 +717,11 @@
     input.addEventListener('input', scheduleAutoApply);
   });
 
-  // Set the date field to today's date automatically on load (format DD/MM/YYYY)
+  // Set the date field to today's date automatically on load
   (function setTodayDate(){
     const today = new Date();
-    const dd = String(today.getDate()).padStart(2,'0');
-    const mm = String(today.getMonth()+1).padStart(2,'0');
-    const yyyy = today.getFullYear();
-    document.getElementById('f-tanggal').value = `${dd}/${mm}/${yyyy}`;
+    const iso = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+    document.getElementById('f-tanggal').value = iso;
   })();
 
   applyAll(false);

@@ -71,6 +71,22 @@
     font-size:19px; margin:0; color:#fff; letter-spacing:.01em;
     display:flex; align-items:center; gap:9px; position:relative;
   }
+  .btn-music{
+    position:absolute; top:20px; right:22px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.35);
+    color:#fff; font-size:12px; font-weight:600;
+    padding:7px 13px; border-radius:20px;
+    display:flex; align-items:center; gap:6px;
+    cursor:pointer; backdrop-filter:blur(2px);
+    transition:background .15s ease, transform .12s ease;
+  }
+  .btn-music:hover{ background:rgba(255,255,255,.24); }
+  .btn-music:active{ transform:scale(.96); }
+  .btn-music.playing{ background:rgba(92,217,143,.28); border-color:rgba(92,217,143,.6); }
+  @media (max-width:600px){
+    .btn-music{ top:14px; right:14px; padding:6px 10px; font-size:11px; }
+  }
   .toolbar-head h1 .dot{
     width:9px; height:9px; border-radius:50%; background:#5CD98F;
     box-shadow:0 0 0 4px rgba(92,217,143,.25);
@@ -506,6 +522,9 @@
   <div class="toolbar" id="toolbar">
     <div class="toolbar-head">
       <h1><span class="dot"></span>SAN</h1>
+      <button id="btnMusic" class="btn-music" onclick="toggleMusic()" type="button" title="Putar musik latar">
+        <span id="musicIcon">🔇</span><span id="musicLabel">Musik</span>
+      </button>
     </div>
 
     <div class="toolbar-body">
@@ -575,7 +594,104 @@
     <span id="toastMsg">Diterapkan ke 8 label</span>
   </div>
 
+  <div style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+    <div id="yt-player"></div>
+  </div>
+
 <script>
+  // ---------- Musik latar (embed resmi YouTube player, auto-play saat halaman dibuka) ----------
+  const YT_VIDEO_ID = '8NS-4m3wicw';
+  let ytPlayer = null;
+  let ytReady = false;
+  let musicPlaying = false;
+  let musicMuted = true;
+
+  (function loadYouTubeAPI(){
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  })();
+
+  window.onYouTubeIframeAPIReady = function(){
+    ytPlayer = new YT.Player('yt-player', {
+      height: '0',
+      width: '0',
+      videoId: YT_VIDEO_ID,
+      playerVars: {
+        autoplay: 1,
+        mute: 1,          // browser hanya izinkan autoplay kalau muted
+        controls: 0,
+        loop: 1,
+        playlist: YT_VIDEO_ID
+      },
+      events: {
+        onReady: function(){
+          ytReady = true;
+          ytPlayer.setVolume(50);
+          ytPlayer.playVideo();
+          musicPlaying = true;
+          setMusicUI(true, true); // sudah main, tapi masih dibisukan
+          armUnmuteOnFirstInteraction();
+        }
+      }
+    });
+  };
+
+  // Trik standar: begitu ada interaksi pertama (klik/ketuk/tombol) di halaman,
+  // langsung nyalakan suaranya. Ini yang memungkinkan "auto musik" bekerja
+  // di semua browser (browser tidak izinkan suara otomatis tanpa interaksi).
+  function armUnmuteOnFirstInteraction(){
+    const unmuteNow = () => {
+      if(ytPlayer && musicMuted){
+        ytPlayer.unMute();
+        ytPlayer.setVolume(50);
+        musicMuted = false;
+        setMusicUI(true, false);
+      }
+      document.removeEventListener('click', unmuteNow);
+      document.removeEventListener('touchstart', unmuteNow);
+      document.removeEventListener('keydown', unmuteNow);
+    };
+    document.addEventListener('click', unmuteNow, { once:true });
+    document.addEventListener('touchstart', unmuteNow, { once:true });
+    document.addEventListener('keydown', unmuteNow, { once:true });
+  }
+
+  function setMusicUI(playing, muted){
+    const btn = document.getElementById('btnMusic');
+    const icon = document.getElementById('musicIcon');
+    const label = document.getElementById('musicLabel');
+    if(playing && !muted){
+      btn.classList.add('playing');
+      icon.textContent = '🔊';
+      label.textContent = 'Musik On';
+    } else if(playing && muted){
+      btn.classList.add('playing');
+      icon.textContent = '🔈';
+      label.textContent = 'Sentuh utk suara';
+    } else {
+      btn.classList.remove('playing');
+      icon.textContent = '🔇';
+      label.textContent = 'Musik';
+    }
+  }
+
+  function toggleMusic(){
+    if(!ytReady) return;
+    if(!musicPlaying){
+      ytPlayer.unMute();
+      ytPlayer.setVolume(50);
+      ytPlayer.playVideo();
+      musicPlaying = true;
+      musicMuted = false;
+      setMusicUI(true, false);
+    } else {
+      if(ytPlayer) ytPlayer.pauseVideo();
+      musicPlaying = false;
+      setMusicUI(false);
+    }
+  }
+
   const LABEL_TEMPLATE = () => `
     <div class="lbl-bar">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 5-3.2 8.7-7 10-3.8-1.3-7-5-7-10V5l7-3z" fill="var(--navy)"/><path d="M8.5 12l2.3 2.3L16 9.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
